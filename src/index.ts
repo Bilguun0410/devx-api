@@ -5,8 +5,8 @@ import { connectDB, disconnectDB } from "./utils/a";
 import { userController } from "./modules/user";
 import { authController } from "./modules/auth";
 
-// Connect to MongoDB
-await connectDB();
+// Connect to MongoDB without blocking module initialization
+connectDB().catch(console.error);
 
 export const app = new Elysia()
   .use(cors())
@@ -35,15 +35,19 @@ export const app = new Elysia()
     timestamp: new Date().toISOString(),
   }))
   .use(authController)
-  .use(userController)
-  .listen(process.env.PORT || 3000);
+  .use(userController);
 
-console.log(
-  `🦊 Elysia server is running at http://${app.server?.hostname}:${app.server?.port}`,
-);
-console.log(
-  `📚 Swagger documentation available at http://${app.server?.hostname}:${app.server?.port}/swagger`,
-);
+// Only listen if not running in a serverless environment like Vercel
+if (!process.env.VERCEL) {
+  app.listen(process.env.PORT || 3000, () => {
+    console.log(
+      `🦊 Elysia server is running at http://${app.server?.hostname}:${app.server?.port}`,
+    );
+    console.log(
+      `📚 Swagger documentation available at http://${app.server?.hostname}:${app.server?.port}/swagger`,
+    );
+  });
+}
 
 // Graceful shutdown handling
 process.on("SIGINT", async () => {
