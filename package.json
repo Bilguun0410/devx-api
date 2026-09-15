@@ -15,7 +15,7 @@
     "mongoose": "^8.10.0"
   },
   "devDependencies": {
-    "bun-types": "latest",
+    "@types/bun": "^1.4.2",
     "typescript": "^7.0.2"
   },
   "module": "src/index.js"
