@@ -1,68 +1,45 @@
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
-import { cors } from "@elysiajs/cors";
-import { connectDB, disconnectDB } from "./utils/a";
-import { userController } from "./modules/user";
-import { authController } from "./modules/auth";
+import { userRoutes } from "./modules/users/user.controller";
+import { authPlugin } from "./plugins/auth";
 
-// Connect to MongoDB without blocking module initialization
-connectDB().catch(console.error);
-
-export const app = new Elysia()
-  .use(cors())
+export const app = new Elysia({ prefix: "/api" })
   .use(
     swagger({
+      path: "/swagger",
       documentation: {
         info: {
-          title: "Users API",
+          title: "User API",
           version: "1.0.0",
-          description: "Elysia.js + MongoDB (Mongoose) + Eden API",
+          description: "Headless User API Documentation",
         },
-        tags: [
-          { name: "Auth", description: "Authentication endpoints" },
-          { name: "Users", description: "User management endpoints" },
-        ],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: "http",
+              scheme: "bearer",
+              bearerFormat: "JWT",
+            },
+          },
+        },
       },
-      path: "/swagger",
-    }),
+    })
   )
-  .get("/", () => ({
-    message: "Welcome to Users API!",
-    docs: "/swagger",
-  }))
-  .get("/health", () => ({
-    status: "ok",
-    timestamp: new Date().toISOString(),
-  }))
-  .use(authController)
-  .use(userController);
-
-// Only listen if not running in a serverless environment like Vercel
-if (!process.env.VERCEL) {
-  app.listen(process.env.PORT || 3000, () => {
-    console.log(
-      `🦊 Elysia server is running at http://${app.server?.hostname}:${app.server?.port}`,
-    );
-    console.log(
-      `📚 Swagger documentation available at http://${app.server?.hostname}:${app.server?.port}/swagger`,
-    );
-  });
-}
-
-// Graceful shutdown handling
-process.on("SIGINT", async () => {
-  console.log("\nReceived SIGINT. Shutting down gracefully...");
-  await disconnectDB();
-  process.exit(0);
-});
-
-process.on("SIGTERM", async () => {
-  console.log("\nReceived SIGTERM. Shutting down gracefully...");
-  await disconnectDB();
-  process.exit(0);
-});
-
-// Export App type for Eden Treaty
-export type App = typeof app;
-
-export default app;
+  .onError(({ code, error, set }) => {
+    if (code === "VALIDATION") {
+      set.status = 400;
+      return {
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Invalid request data",
+          details: error.all.map((e) => ({
+            field: e.path,
+            message: e.message,
+          })),
+        },
+      };
+    }
+  })
+  .use(authPlugin)
+  .get("/health", () => ({ status: "ok" }))
+  .use(userRoutes);

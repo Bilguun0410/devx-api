@@ -1,114 +1,80 @@
-# Users API (Elysia.js + MongoDB + Mongoose + Eden)
+# Headless User API
 
-A production-ready RESTful service built with [Elysia.js](https://elysiajs.com/), [MongoDB](https://www.mongodb.com/) via [Mongoose](https://mongoosejs.com/), and end-to-end type safety powered by [Eden Treaty](https://elysiajs.com/eden/overview.html).
+A minimal but production-ready headless User API service using Elysia.js, TypeScript, Vercel, MongoDB, Bun, and TypeBox validation.
 
----
+## Architecture
 
-## 📁 Project Structure
+- Feature-oriented backend architecture without over-engineering.
+- Uses standard Elysia Router -> Controller -> Service -> Database flow.
 
-```text
-| src
-  | modules
-    | auth
-      | index.ts       # Elysia controller (POST /auth/register, POST /auth/login, GET /auth/me)
-      | service.ts     # Auth service business logic
-      | model.ts       # Auth DTOs & TypeBox validation schemas
-    | user
-      | index.ts       # Elysia controller (CRUD /users)
-      | service.ts     # User database operations & transformations
-      | model.ts       # Mongoose User schema & Elysia TypeBox DTOs
-  | utils
-    | a
-      | index.ts       # MongoDB connection & disconnect manager
-    | b
-      | index.ts       # Password hashing & verification helpers (bcrypt)
-    | db
-      | index.ts       # Utility alias for database connection
-    | password
-      | index.ts       # Utility alias for password hashing
-  | client.ts          # Eden Treaty client export for type-safe client consumption
-  | index.ts           # Main Elysia app entry point (exports app & type App)
-| test
-  | api.test.ts        # Comprehensive integration tests using Eden Treaty & Bun Test
+## Prerequisites
+
+- [Bun](https://bun.sh/)
+- MongoDB database (local or remote)
+
+## Installation
+
+```bash
+bun install
 ```
 
----
+## Environment Variables
 
-## 🚀 Getting Started
+Copy the example environment file and update it with your own values:
 
-### 1. Prerequisites
-- [Bun](https://bun.sh/) (v1.3+ recommended)
-- [MongoDB](https://www.mongodb.com/) instance running locally or via Docker
-
-### 2. Environment Configuration
-Create a `.env` file (copied from `.env.example`):
 ```bash
 cp .env.example .env
 ```
-Default `.env` configuration:
-```env
-PORT=3000
-MONGODB_URI=mongodb://127.0.0.1:27017/users-api
-JWT_SECRET=super-secret-jwt-key-change-in-production
-```
 
-### 3. Start Development Server
+Required variables:
+- `MONGODB_URI`: The connection string to your MongoDB database.
+- `MONGODB_DB_NAME`: The name of the database.
+
+## Local Development
+
+Start the development server with hot-reload:
+
 ```bash
-bun run dev
+bun dev
 ```
 
-Server endpoints:
-- **API Base:** `http://localhost:3000`
-- **Swagger Documentation:** `http://localhost:3000/swagger`
-- **Health Check:** `http://localhost:3000/health`
+The server will start at `http://localhost:3000`.
 
-### 4. Run Integration Tests
-```bash
-bun test
+## API Endpoints
+
+### Health Check
+
+```http
+GET /api/health
+```
+Response: `{"status": "ok"}`
+
+### Users
+
+#### Create User
+
+```http
+POST /api/users
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com"
+}
 ```
 
-### 5. Typecheck
-```bash
-bun run typecheck
+#### Get User by ID
+
+```http
+GET /api/users/:id
 ```
 
----
+## Vercel Deployment
 
-## 🌿 Eden Treaty Usage Example
+This project is configured for deployment on Vercel using the Node.js runtime. 
 
-Eden Treaty provides end-to-end type safety directly from your server type definition:
+1. Install Vercel CLI: `npm i -g vercel`
+2. Run `vercel` in the project root to deploy.
+3. Add the `MONGODB_URI` and `MONGODB_DB_NAME` environment variables in your Vercel project settings.
 
-```typescript
-import { treaty } from "@elysiajs/eden";
-import type { App } from "./src";
-
-const client = treaty<App>("http://localhost:3000");
-
-// 1. Register a user
-const { data: regData, error: regError } = await client.auth.register.post({
-  name: "Jane Doe",
-  email: "jane@example.com",
-  password: "securepassword123",
-});
-
-// 2. Log in
-const { data: loginData } = await client.auth.login.post({
-  email: "jane@example.com",
-  password: "securepassword123",
-});
-
-// 3. Authenticated profile lookup
-const { data: profile } = await client.auth.me.get({
-  headers: {
-    authorization: `Bearer ${loginData?.token}`,
-  },
-});
-
-// 4. Get all users
-const { data: users } = await client.users.get();
-
-// 5. Update user by ID
-const { data: updated } = await client.users({ id: profile!.user.id }).put({
-  name: "Jane Smith",
-});
-```
+The Vercel configuration uses `api/index.ts` as the entry point and routes all requests properly.
