@@ -1,5 +1,5 @@
 import { MongoClient, Db } from "mongodb";
-import { env } from "./env.js";
+import { describeUriScheme, env, hasValidMongoScheme } from "./env.js";
 
 declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
@@ -46,7 +46,10 @@ export const getDb = async (): Promise<Db> => {
  * response instead of only from the platform's runtime logs.
  */
 export const pingDb = async (): Promise<
-  { ok: true; database: string } | { ok: false; error: string; detail: string }
+  
+  | { ok: true; database: string }
+  | { ok: false; error: string; detail: string; hint?: string }
+
 > => {
   try {
     const db = await getDb();
@@ -57,6 +60,16 @@ export const pingDb = async (): Promise<
       ok: false,
       error: error?.name ?? "UnknownError",
       detail: redact(String(error?.message ?? error)).slice(0, 300),
+      // A scheme error means the variable itself is malformed, not that the
+      // database is unreachable — worth saying outright.
+      ...(hasValidMongoScheme(env.MONGODB_URI)
+        ? {}
+        : {
+            hint:
+              "MONGODB_URI does not start with mongodb:// or mongodb+srv:// — it starts with " +
+              describeUriScheme(env.MONGODB_URI) +
+              ". Check for a stray quote, a leading newline, or the variable name pasted into the value.",
+          }),
     };
   }
 };
