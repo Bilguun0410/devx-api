@@ -31,6 +31,7 @@ export const userRoutes = new Elysia({ prefix: "/users" })
             },
           };
         }
+        console.error("[users] request failed:", error);
         set.status = 500;
         return {
           error: {
@@ -65,6 +66,7 @@ export const userRoutes = new Elysia({ prefix: "/users" })
         const token = await jwt.sign({ id: user.id });
         return { user, token };
       } catch (error) {
+        console.error("[users] request failed:", error);
         set.status = 500;
         return {
           error: {
@@ -89,6 +91,7 @@ export const userRoutes = new Elysia({ prefix: "/users" })
       try {
         return await userService.findAll(query);
       } catch (error) {
+        console.error("[users] request failed:", error);
         set.status = 500;
         return {
           error: {
@@ -122,6 +125,7 @@ export const userRoutes = new Elysia({ prefix: "/users" })
         
         return user;
       } catch (error) {
+        console.error("[users] request failed:", error);
         set.status = 500;
         return {
           error: {
@@ -180,6 +184,7 @@ export const userRoutes = new Elysia({ prefix: "/users" })
                 },
               };
             }
+            console.error("[users] request failed:", error);
             set.status = 500;
             return {
               error: {
@@ -229,6 +234,7 @@ export const userRoutes = new Elysia({ prefix: "/users" })
             set.status = 204;
             return;
           } catch (error) {
+            console.error("[users] request failed:", error);
             set.status = 500;
             return {
               error: {
