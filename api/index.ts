@@ -1,4 +1,4 @@
-import { app } from "../src/index";
+import { app } from "../src/index.js";
 
 // Vercel needs a callable handler. Exporting the Elysia instance itself gives
 // the runtime an object it cannot invoke, which fails as FUNCTION_INVOCATION_FAILED.

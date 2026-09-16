@@ -1,7 +1,7 @@
 import { Elysia } from "elysia";
 import { swagger } from "@elysiajs/swagger";
-import { userRoutes } from "./modules/users/user.controller";
-import { authPlugin } from "./plugins/auth";
+import { userRoutes } from "./modules/users/user.controller.js";
+import { authPlugin } from "./plugins/auth.js";
 
 export const app = new Elysia({ prefix: "/api" })
   .use(

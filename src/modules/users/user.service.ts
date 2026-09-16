@@ -1,5 +1,5 @@
 import { ObjectId, type Filter } from "mongodb";
-import { getUserCollection } from "./user.model";
+import { getUserCollection } from "./user.model.js";
 import {
   CreateUser,
   UpdateUser,
@@ -8,7 +8,7 @@ import {
   User,
   UserResponse,
   PaginatedUsers,
-} from "./user.types";
+} from "./user.types.js";
 import bcrypt from "bcryptjs";
 
 const DEFAULT_PAGE = 1;

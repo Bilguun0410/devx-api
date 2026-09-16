@@ -1,5 +1,5 @@
 import { Static } from "elysia";
-import { CreateUserSchema, UpdateUserSchema, LoginSchema, ListUsersSchema } from "./user.schema";
+import { CreateUserSchema, UpdateUserSchema, LoginSchema, ListUsersSchema } from "./user.schema.js";
 import { ObjectId } from "mongodb";
 
 export type CreateUser = Static<typeof CreateUserSchema>;

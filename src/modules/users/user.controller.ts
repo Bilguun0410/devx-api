@@ -5,9 +5,9 @@ import {
   LoginSchema,
   UserIdSchema,
   ListUsersSchema,
-} from "./user.schema";
-import { userService } from "./user.service";
-import { authPlugin, requireAuth } from "../../plugins/auth";
+} from "./user.schema.js";
+import { userService } from "./user.service.js";
+import { authPlugin, requireAuth } from "../../plugins/auth.js";
 
 export const userRoutes = new Elysia({ prefix: "/users" })
   .use(authPlugin)

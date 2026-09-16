@@ -1,5 +1,5 @@
-import { getDb } from "../../lib/db";
-import { User } from "./user.types";
+import { getDb } from "../../lib/db.js";
+import { User } from "./user.types.js";
 
 export const getUserCollection = async () => {
   const db = await getDb();

@@ -1,5 +1,5 @@
 import { MongoClient, Db } from "mongodb";
-import { env } from "./env";
+import { env } from "./env.js";
 
 declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;

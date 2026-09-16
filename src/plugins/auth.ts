@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { jwt } from "@elysiajs/jwt";
-import { env } from "../lib/env";
+import { env } from "../lib/env.js";
 
 export const authPlugin = new Elysia()
   .use(
