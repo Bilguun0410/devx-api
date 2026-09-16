@@ -79,6 +79,30 @@ export const userRoutes = new Elysia({ prefix: "/users" })
     }
   )
 
+  // Public route: List users.
+  // Intentionally unauthenticated: this API backs a teaching exercise where
+  // students list registered users with a plain fetch(). Password hashes are
+  // never included — userService.findAll maps through mapToResponse.
+  .get(
+    "/",
+    async ({ query, set }) => {
+      try {
+        return await userService.findAll(query);
+      } catch (error) {
+        set.status = 500;
+        return {
+          error: {
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Internal server error",
+          },
+        };
+      }
+    },
+    {
+      query: ListUsersSchema,
+    }
+  )
+
   // Public route: Get User (Can be modified to be protected if needed)
   .get(
     "/:id",
@@ -116,29 +140,6 @@ export const userRoutes = new Elysia({ prefix: "/users" })
   .group("", (app) => 
     app
       .use(requireAuth)
-
-      .get(
-        "/",
-        async ({ query, set }) => {
-          try {
-            return await userService.findAll(query);
-          } catch (error) {
-            set.status = 500;
-            return {
-              error: {
-                code: "INTERNAL_SERVER_ERROR",
-                message: "Internal server error",
-              },
-            };
-          }
-        },
-        {
-          query: ListUsersSchema,
-          detail: {
-            security: [{ bearerAuth: [] }],
-          },
-        }
-      )
 
       .put(
         "/:id",
