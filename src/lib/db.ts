@@ -5,24 +5,26 @@ declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
 }
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+// Connecting at module scope produces an unhandled rejection when the database
+// is unreachable, which takes down the whole serverless invocation. Connect
+// lazily instead, and drop a failed promise so the next request can retry
+// rather than being served a permanently rejected one.
+const connect = (): Promise<MongoClient> => {
+  const client = new MongoClient(env.MONGODB_URI, {
+    // Fail fast instead of holding a serverless invocation open until timeout.
+    serverSelectionTimeoutMS: 5000,
+  });
 
-if (process.env.NODE_ENV === "development") {
-  // In development mode, use a global variable so that the value
-  // is preserved across module reloads caused by HMR (Hot Module Replacement).
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(env.MONGODB_URI as string);
-    global._mongoClientPromise = client.connect();
-  }
-  clientPromise = global._mongoClientPromise;
-} else {
-  // In production mode, it's best to not use a global variable.
-  client = new MongoClient(env.MONGODB_URI as string);
-  clientPromise = client.connect();
-}
+  return client.connect().catch((error) => {
+    globalThis._mongoClientPromise = undefined;
+    throw error;
+  });
+};
 
 export const getDb = async (): Promise<Db> => {
-  const connectedClient = await clientPromise;
-  return connectedClient.db(env.MONGODB_DB_NAME as string);
+  // Cached on the global so warm invocations reuse a single pool.
+  globalThis._mongoClientPromise ??= connect();
+
+  const connectedClient = await globalThis._mongoClientPromise;
+  return connectedClient.db(env.MONGODB_DB_NAME);
 };
